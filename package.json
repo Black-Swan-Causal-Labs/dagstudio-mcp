@@ -1,0 +1,46 @@
+{
+  "name": "dag-studio-mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for the DAG Studio causal-inference engine.",
+  "type": "module",
+  "license": "MIT",
+  "author": "John D. Diaz-Decaro <jdiazdecaro@gmail.com>",
+  "homepage": "https://github.com/Black-Swan-Causal-Labs/dag-studio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Black-Swan-Causal-Labs/dag-studio.git",
+    "directory": "dag-studio-mcp"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "dag-studio-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "predev": "node scripts/stamp-version.mjs",
+    "dev": "tsx src/index.ts",
+    "prebuild": "node scripts/stamp-version.mjs",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "concordance": "node ci/concordance.mjs",
+    "test:engine": "node --test ../dag-engine.test.js",
+    "test:tools": "node --import tsx --test tests/*.test.ts",
+    "test": "npm run test:engine && npm run test:tools"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "underscore": "^1.13.6"
+  }
+}
