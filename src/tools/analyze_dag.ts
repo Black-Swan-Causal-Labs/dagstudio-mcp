@@ -64,7 +64,15 @@ export const descriptor = {
     "plus a static concordance attestation for the engine release.\n\n" +
     "DAG Studio verifies analyses given a DAG. It does not verify that the DAG correctly " +
     "encodes domain knowledge or that the variables are measurable in any specific dataset. " +
-    "Outputs are conditional on the encoded structure.",
+    "Outputs are conditional on the encoded structure.\n\n" +
+    "When the DAG is meant to depict a paper's causal model, the encoded structure should " +
+    "reflect the paper's own structural assumptions, including those implicit in its " +
+    "analytical approach (what is adjusted for, what is treated as exposure or outcome, " +
+    "what is decomposed into mediators, what is acknowledged as unmeasured or latent " +
+    "confounding, and what is conditioned on as a collider), rather than an external " +
+    "theoretical framing imported from other literature. If the paper contains no explicit " +
+    "DAG, surface the construct-vs-reproduce ambiguity to the user before treating " +
+    "downstream analysis as a reproduction of the paper.",
   // MCP requires inputSchema to be a JSON-Schema object with type:"object" at
   // the top level; oneOf-only is rejected by the SDK and clients silently drop
   // the entire tools list when any descriptor fails validation. So both input

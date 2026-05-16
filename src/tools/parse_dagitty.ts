@@ -26,7 +26,16 @@ export const descriptor = {
     "directed edges.\n\n" +
     "This tool parses notation; it does not validate that the encoded DAG is a correct or " +
     "complete causal model. That is a domain-knowledge question outside the scope of any " +
-    "graph tool.",
+    "graph tool.\n\n" +
+    "When the DAG depicts a paper's causal model, encode the structural assumptions of the " +
+    "study being protocolized, including those that are implicit in the analytical approach " +
+    "(what is adjusted for, what is treated as exposure or outcome, what is decomposed into " +
+    "mediators, what is acknowledged as unmeasured or latent confounding, and what is " +
+    "conditioned on as a collider), rather than only what is formally depicted. Most papers " +
+    "contain no explicit DAG; the structural commitments live in the methods and the choice " +
+    "of estimator. Surface the construct-vs-reproduce ambiguity to the user before " +
+    "constructing the DAG, and do not silently overlay normative or theoretical positions " +
+    "from outside literature onto the paper's stated estimand.",
   inputSchema: {
     type: 'object',
     properties: {

@@ -44,7 +44,12 @@ export const descriptor = {
     "Also returns dagstudio_url — a one-click deep-link that opens the same DAG on the " +
     "DAG Studio canvas at dagstudio.blackswancausallabs.com. Surface this URL to the user " +
     "alongside the generated code so they can paste-free open the DAG visually, regardless " +
-    "of which language was requested.",
+    "of which language was requested.\n\n" +
+    "If the DAG depicts a paper's causal model, whether the paper presents a DAG explicitly " +
+    "or only implies one through its analytical approach, the emitted code should reflect " +
+    "that paper's structural assumptions. Do not let the choice of downstream language " +
+    "(Python or R analysis pipeline) become an opportunity to substitute external " +
+    "theoretical commitments for what the paper actually claims as its estimand.",
   inputSchema: {
     type: 'object',
     properties: {
