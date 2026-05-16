@@ -4,6 +4,10 @@
   "main": "src/worker/index.ts",
   "compatibility_date": "2025-11-01",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "dagstudio-mcp.blackswancausallabs.com/*", "zone_name": "blackswancausallabs.com" }
+  ],
   "durable_objects": {
     "bindings": [
       { "name": "MCP_OBJECT", "class_name": "DagStudioMCP" }
