@@ -1,7 +1,8 @@
 // MCP tool: generate_code (spec §4.3).
 // Emit idiomatic Python (networkx.DiGraph) or R (dagitty DSL) representing
 // the DAG. The identifier_map lets agents trace canvas labels to sanitized
-// code identifiers when these differ.
+// code identifiers when these differ. The dagstudio_url is a one-click
+// deep-link into the DAG Studio canvas for the same DAG.
 //
 // Pure transformation per spec §5.2 — no diagnostics, no citations, no concordance.
 
@@ -16,6 +17,8 @@ import type { EngineEdge, EngineNode } from '../../../dag-engine.js';
 
 import { DAGSchema } from '../schemas.js';
 
+const DAGSTUDIO_CANVAS_URL = 'https://dagstudio.blackswancausallabs.com/';
+
 export const InputSchema = z.object({
   dag: DAGSchema,
   language: z.enum(['python', 'r']),
@@ -26,6 +29,7 @@ export const OutputSchema = z.object({
   code: z.string(),
   identifier_map: z.record(z.string()),
   language: z.enum(['python', 'r']),
+  dagstudio_url: z.string().url(),
 });
 export type Output = z.infer<typeof OutputSchema>;
 
@@ -36,7 +40,11 @@ export const descriptor = {
     "DAG. The identifier_map lets agents trace canvas labels to sanitized code identifiers " +
     "when these differ (e.g., when labels contain spaces or special characters that aren't " +
     "valid Python/R identifiers). Useful for handing the DAG to a downstream analysis " +
-    "pipeline.",
+    "pipeline. " +
+    "Also returns dagstudio_url — a one-click deep-link that opens the same DAG on the " +
+    "DAG Studio canvas at dagstudio.blackswancausallabs.com. Surface this URL to the user " +
+    "alongside the generated code so they can paste-free open the DAG visually, regardless " +
+    "of which language was requested.",
   inputSchema: {
     type: 'object',
     properties: {
@@ -62,13 +70,27 @@ export function handler(input: Input): Output {
   const exposure = input.dag.exposure;
   const outcome = input.dag.outcome;
 
+  // Always compute the R-wrapped DSL — the canvas's ?dagitty= handler accepts
+  // bare DSL or the R-wrapped form, so a URL works regardless of which
+  // language the caller requested.
+  const rCode = generateRCode(nodes, edges, exposure, outcome);
   const code = input.language === 'python'
     ? generatePythonCode(nodes, edges, exposure, outcome)
-    : generateRCode(nodes, edges, exposure, outcome);
+    : rCode;
+  // Extract just the dag { ... } body from inside generateRCode's
+  // dagitty('...') call. The full R source starts with "library(dagitty)"
+  // and a comment header, which would fail the canvas's ^\s*dagitty\( auto-
+  // wrap regex and produce a nonsense re-wrap. The canvas tolerates leading
+  // whitespace and indented DSL, so trim is enough.
+  const dslMatch = rCode.match(/dagitty\(\s*'([\s\S]*?)'\s*\)/);
+  const dsl = (dslMatch && dslMatch[1]) ? dslMatch[1].trim() : 'dag { }';
+  const dagstudio_url =
+    `${DAGSTUDIO_CANVAS_URL}?dagitty=${encodeURIComponent(dsl)}`;
 
   return {
     code,
     identifier_map: _identMap(nodes),
     language: input.language,
+    dagstudio_url,
   };
 }

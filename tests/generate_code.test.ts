@@ -66,3 +66,23 @@ test('generate_code: works on DAGs without x/y coordinates', () => {
   const out = handler({ dag: T02_CONFOUNDING, language: 'python' });
   assert.doesNotMatch(out.code, /NaN/);
 });
+
+test('generate_code: emits dagstudio_url pointing at the canonical canvas', () => {
+  for (const language of ['r', 'python'] as const) {
+    const out = handler({ dag: T02_CONFOUNDING, language });
+    const u = new URL(out.dagstudio_url);
+    assert.equal(u.origin + u.pathname, 'https://dagstudio.blackswancausallabs.com/');
+    const dagitty = u.searchParams.get('dagitty');
+    assert.ok(dagitty, `dagitty query param missing for language=${language}`);
+    // The URL carries bare DSL (just the dag { ... } block) regardless of
+    // which language was requested. The canvas's ?dagitty= handler auto-wraps
+    // bare DSL in dagitty('...'); the R wrapper and comment header from
+    // generateRCode would break that auto-wrap, so we strip them.
+    assert.doesNotMatch(dagitty!, /library\(dagitty\)/);
+    assert.doesNotMatch(dagitty!, /dagitty\(/);
+    assert.match(dagitty!, /^dag \{/);
+    assert.match(dagitty!, /X \[exposure\]/);
+    assert.match(dagitty!, /Y \[outcome\]/);
+    assert.match(dagitty!, /C -> X/);
+  }
+});
