@@ -79,14 +79,14 @@ test('compute_bias: T01 mediation — empty set already unbiased', () => {
 
 test('compute_bias: T11 overadjustment — adjusting on B (descendant of X) flagged + biases differently', () => {
   const out = handler({ dag: T11_OVERADJ, adjustment_set: ['B', 'C'], n: 5000, seed: 42 });
-  const codes = out.regulatory_considerations.flags.map(f => f.code);
+  const codes = out.diagnostics.flags.map(f => f.code);
   assert.ok(codes.includes('OVERADJ_DESCENDANT'));
   assert.ok(codes.includes('SIM_LINEAR_GAUSSIAN_ASSUMPTION'));
   assert.ok(codes.includes('SIM_SEED_DETERMINISTIC'));
-  assert.equal(out.regulatory_considerations.overadjustment_detected, true);
-  assert.deepEqual(out.regulatory_considerations.overadjustment_variables, ['B']);
+  assert.equal(out.diagnostics.overadjustment_detected, true);
+  assert.deepEqual(out.diagnostics.overadjustment_variables, ['B']);
   // identifiability flips to 'unidentifiable' because OVERADJ_DESCENDANT is critical.
-  assert.equal(out.regulatory_considerations.identifiability, 'unidentifiable');
+  assert.equal(out.diagnostics.identifiability, 'unidentifiable');
   // Schisterman cited because of OVERADJ_DESCENDANT.
   assert.ok(out.citations.some(c => c.source.startsWith('Schisterman')));
 });

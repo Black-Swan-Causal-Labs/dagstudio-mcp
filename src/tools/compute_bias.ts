@@ -20,10 +20,10 @@ import {
   CITATIONS,
   CitationSchema,
   DAGSchema,
+  DiagnosticsBlockSchema,
   FLAG_SEVERITY,
-  RegulatoryBlockSchema,
 } from '../schemas.js';
-import type { Citation, RegulatoryBlock } from '../schemas.js';
+import type { Citation, DiagnosticsBlock } from '../schemas.js';
 import { ENGINE_VERSION } from '../version.js';
 
 import * as checkOveradjustment from './check_overadjustment.js';
@@ -49,7 +49,7 @@ export const OutputSchema = z.object({
   bias_reduction: z.number(),
   n: z.number().int().positive(),
   seed: z.number().int(),
-  regulatory_considerations: RegulatoryBlockSchema,
+  diagnostics: DiagnosticsBlockSchema,
   citations: z.array(CitationSchema),
   engine_version: z.string(),
 });
@@ -63,11 +63,10 @@ export const descriptor = {
     "X→Y paths), then fits two OLS regressions on simulated data: crude (Y ~ X) and adjusted " +
     "(Y ~ X + Z). Reports each estimate, each bias against the true effect, and the bias " +
     "reduction |crude_bias| − |adjusted_bias|.\n\n" +
-    "Serves FDA RWE-guidance §III.E sensitivity analyses by translating a structural claim " +
-    "(\"adjust for {age, smoking}\") into a numerical demonstration. Composes " +
-    "check_overadjustment internally — any overadjustment flags emitted there are surfaced " +
-    "in this tool's regulatory_considerations as well, so a single call captures both the " +
-    "numerical bias and the structural reason for it.\n\n" +
+    "Translates a structural claim (\"adjust for {age, smoking}\") into a numerical " +
+    "demonstration. Composes check_overadjustment internally — any overadjustment flags " +
+    "emitted there are surfaced in this tool's diagnostics as well, so a single call " +
+    "captures both the numerical bias and the structural reason for it.\n\n" +
     "Outputs are conditional on the linear Gaussian SEM (see simulate_data for assumptions).",
   inputSchema: {
     type: 'object',
@@ -171,16 +170,15 @@ export function handler(input: Input): Output {
   // surface that tool's full output (problematic_variables, recommendation);
   // we just lift its flags and per-variable detection.
   const overadj = checkOveradjustment.handler({ dag, adjustment_set: Z });
-  const overadjFlags = overadj.regulatory_considerations.flags;
+  const overadjFlags = overadj.diagnostics.flags;
 
-  const flags: RegulatoryBlock['flags'] = [
+  const flags: DiagnosticsBlock['flags'] = [
     {
       severity: FLAG_SEVERITY['SIM_LINEAR_GAUSSIAN_ASSUMPTION'],
       code: 'SIM_LINEAR_GAUSSIAN_ASSUMPTION',
       message:
         'Estimates are conditional on the linear Gaussian SEM. Real datasets generated under ' +
         'unknown processes will not in general match these biases.',
-      fda_reference: '§III.E sensitivity analyses',
     },
     {
       severity: FLAG_SEVERITY['SIM_SEED_DETERMINISTIC'],
@@ -188,14 +186,13 @@ export function handler(input: Input): Output {
       message:
         `Output is deterministic given seed=${seed}; vary seed and aggregate to characterize ` +
         'stochastic variation in the bias estimates.',
-      fda_reference: '§III.E sensitivity analyses',
     },
     ...overadjFlags,
   ];
 
   const hasCriticalOveradj = overadjFlags.some(f => f.severity === 'critical');
 
-  const regulatory: RegulatoryBlock = {
+  const diagnostics: DiagnosticsBlock = {
     identifiability: hasCriticalOveradj ? 'unidentifiable' : 'identifiable',
     unmeasured_confounding_present: false,
     overadjustment_detected: !overadj.ok,
@@ -222,7 +219,7 @@ export function handler(input: Input): Output {
     bias_reduction: biasReduction,
     n,
     seed,
-    regulatory_considerations: regulatory,
+    diagnostics,
     citations,
     engine_version: ENGINE_VERSION,
   };

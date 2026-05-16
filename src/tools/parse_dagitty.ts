@@ -1,5 +1,5 @@
 // MCP tool: parse_dagitty (spec §4.2).
-// Pure transformation. No regulatory_considerations / citations / engine_version
+// Pure transformation. No diagnostics / citations / engine_version
 // (per spec §5.2 emission table — parser tools don't emit those).
 
 import { z } from 'zod';

@@ -16,10 +16,10 @@ import {
   CITATIONS,
   CitationSchema,
   DAGSchema,
+  DiagnosticsBlockSchema,
   FLAG_SEVERITY,
-  RegulatoryBlockSchema,
 } from '../schemas.js';
-import type { Citation, RegulatoryBlock } from '../schemas.js';
+import type { Citation, DiagnosticsBlock } from '../schemas.js';
 import { ENGINE_VERSION } from '../version.js';
 
 const DEFAULT_N = 1000;
@@ -46,7 +46,7 @@ export const OutputSchema = z.object({
     edge_coefficient_default: z.literal(0.5),
     error_distribution: z.literal('N(0, 0.25)'),
   }),
-  regulatory_considerations: RegulatoryBlockSchema,
+  diagnostics: DiagnosticsBlockSchema,
   citations: z.array(CitationSchema),
   engine_version: z.string(),
 });
@@ -59,11 +59,10 @@ export const descriptor = {
     "with the DAG. Root variables are sampled N(0,1); each non-root is a linear combination " +
     "of its parents (default β = 0.5 per edge, overridable via `coefficients`) plus N(0, " +
     "0.25) noise. Output is deterministic given seed (default 42).\n\n" +
-    "Useful for sensitivity analysis (FDA RWE-guidance §III.E) and for demonstrating " +
-    "structural claims (e.g., 'adjustment for {age, smoking} eliminates the confounding ' " +
-    "shown by these data'). Outputs are consistent with the DAG under the linear Gaussian " +
-    "model only — real datasets generated under unknown processes will not in general match " +
-    "these distributions.",
+    "Useful for sensitivity analysis and for demonstrating structural claims (e.g., " +
+    "'adjustment for {age, smoking} eliminates the confounding shown by these data'). " +
+    "Outputs are consistent with the DAG under the linear Gaussian model only — real " +
+    "datasets generated under unknown processes will not in general match these distributions.",
   inputSchema: {
     type: 'object',
     properties: {
@@ -122,7 +121,7 @@ export function handler(input: Input): Output {
     dataField = data;
   }
 
-  const flags: RegulatoryBlock['flags'] = [
+  const flags: DiagnosticsBlock['flags'] = [
     {
       severity: FLAG_SEVERITY['SIM_LINEAR_GAUSSIAN_ASSUMPTION'],
       code: 'SIM_LINEAR_GAUSSIAN_ASSUMPTION',
@@ -130,7 +129,6 @@ export function handler(input: Input): Output {
         'Output is conditional on the linear Gaussian SEM (root variables N(0,1); edges β=0.5 ' +
         'by default; errors N(0, 0.25)). Results do not generalize to nonlinear, non-Gaussian, ' +
         'or non-additive processes.',
-      fda_reference: '§III.E sensitivity analyses',
     },
     {
       severity: FLAG_SEVERITY['SIM_SEED_DETERMINISTIC'],
@@ -138,11 +136,10 @@ export function handler(input: Input): Output {
       message:
         `Output is deterministic given seed=${seed}; vary seed and aggregate across runs to ` +
         'characterize stochastic variation.',
-      fda_reference: '§III.E sensitivity analyses',
     },
   ];
 
-  const regulatory: RegulatoryBlock = {
+  const diagnostics: DiagnosticsBlock = {
     identifiability: 'identifiable',
     unmeasured_confounding_present: false,
     overadjustment_detected: false,
@@ -163,7 +160,7 @@ export function handler(input: Input): Output {
       edge_coefficient_default: 0.5,
       error_distribution: 'N(0, 0.25)',
     },
-    regulatory_considerations: regulatory,
+    diagnostics,
     citations,
     engine_version: ENGINE_VERSION,
   };

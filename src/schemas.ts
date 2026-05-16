@@ -72,10 +72,9 @@ export const FlagSchema = z.object({
   severity: z.enum(['info', 'warning', 'critical']),
   code: z.string(),
   message: z.string(),
-  fda_reference: z.string().optional(),
 });
 
-export const RegulatoryBlockSchema = z.object({
+export const DiagnosticsBlockSchema = z.object({
   identifiability: z.enum(['identifiable', 'unidentifiable', 'partially_identifiable']),
   unmeasured_confounding_present: z.boolean(),
   overadjustment_detected: z.boolean(),
@@ -83,7 +82,7 @@ export const RegulatoryBlockSchema = z.object({
   flags: z.array(FlagSchema),
 });
 
-export type RegulatoryBlock = z.infer<typeof RegulatoryBlockSchema>;
+export type DiagnosticsBlock = z.infer<typeof DiagnosticsBlockSchema>;
 
 // ─── Citation catalog (spec §5.4) ───────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 // MCP tool: analyze_dag (spec §4.1).
 // Returns identifiability, minimal adjustment sets, backdoor and directed
-// paths, plus regulatory_considerations / concordance / citations / engine_version
+// paths, plus diagnostics / concordance / citations / engine_version
 // (spec §5).
 
 import { z } from 'zod';
@@ -18,14 +18,14 @@ import {
   CitationSchema,
   ConcordanceAttestationSchema,
   DAGSchema,
+  DiagnosticsBlockSchema,
   FLAG_SEVERITY,
-  RegulatoryBlockSchema,
 } from '../schemas.js';
 import type {
   Citation,
   DAG,
+  DiagnosticsBlock,
   FlagCode,
-  RegulatoryBlock,
 } from '../schemas.js';
 import { ATTESTATION } from '../attestation.js';
 import { ENGINE_VERSION } from '../version.js';
@@ -47,7 +47,7 @@ export const OutputSchema = z.object({
   exposure: z.string(),
   outcome: z.string(),
   concordance: ConcordanceAttestationSchema,
-  regulatory_considerations: RegulatoryBlockSchema,
+  diagnostics: DiagnosticsBlockSchema,
   engine_version: z.string(),
   citations: z.array(CitationSchema),
 });
@@ -59,10 +59,9 @@ export const descriptor = {
     "Returns identifiability status and minimal adjustment sets given the DAG provided. " +
     "Specifically: open backdoor paths from exposure to outcome (Pearl 2009 Theorem 3.3.2), " +
     "the minimal sufficient adjustment sets that block them, and all directed paths.\n\n" +
-    "Accepts either a canonical DAG object or a `dagitty_string`. Returns a " +
-    "regulatory_considerations block phrased in FDA RWE-guidance vocabulary " +
-    "(§III.C variable strategy; §III.E unmeasured confounding) suitable for protocol " +
-    "drafting, plus a static concordance attestation for the engine release.\n\n" +
+    "Accepts either a canonical DAG object or a `dagitty_string`. Returns a diagnostics " +
+    "block summarizing identifiability, unmeasured confounding, and any flagged issues, " +
+    "plus a static concordance attestation for the engine release.\n\n" +
     "DAG Studio verifies analyses given a DAG. It does not verify that the DAG correctly " +
     "encodes domain knowledge or that the variables are measurable in any specific dataset. " +
     "Outputs are conditional on the encoded structure.",
@@ -177,7 +176,7 @@ export function handler(input: Input): Output {
   }
 
   const allDirected = result.all.filter(p => isDirectedCausalPath(p, engineEdges));
-  const regulatory = buildRegulatoryBlock(dag, result, engineNodes, engineEdges);
+  const diagnostics = buildDiagnosticsBlock(dag, result, engineNodes, engineEdges);
 
   const citations: Citation[] = ANALYZE_CITATION_KEYS.map(k => ({ ...CITATIONS[k] }));
 
@@ -189,47 +188,43 @@ export function handler(input: Input): Output {
     exposure: dag.exposure,
     outcome: dag.outcome,
     concordance: ATTESTATION,
-    regulatory_considerations: regulatory,
+    diagnostics,
     engine_version: ENGINE_VERSION,
     citations,
   };
 }
 
-function buildRegulatoryBlock(
+function buildDiagnosticsBlock(
   dag: DAG,
   result: { sets: string[][]; backdoor: string[][]; all: string[][] },
   engineNodes: EngineNode[],
   engineEdges: EngineEdge[]
-): RegulatoryBlock {
-  const flags: RegulatoryBlock['flags'] = [];
+): DiagnosticsBlock {
+  const flags: DiagnosticsBlock['flags'] = [];
 
   // Identifiability flags.
   if (result.backdoor.length === 0) {
     flags.push(makeFlag(
       'IDENT_EMPTY_SET',
-      'No backdoor paths exist; the total effect is identifiable without adjustment.',
-      '§III.C'
+      'No backdoor paths exist; the total effect is identifiable without adjustment.'
     ));
   } else if (result.sets.length === 0) {
     flags.push(makeFlag(
       'IDENT_NONE',
       'No subset of declared covariates blocks all backdoor paths; the total effect is not ' +
-      'identifiable through covariate adjustment alone.',
-      '§III.E unmeasured confounding'
+      'identifiable through covariate adjustment alone.'
     ));
   } else {
     flags.push(makeFlag(
       'IDENT_OK',
-      'At least one minimal sufficient adjustment set blocks every backdoor path.',
-      '§III.C'
+      'At least one minimal sufficient adjustment set blocks every backdoor path.'
     ));
     if (result.sets.length > 1) {
       flags.push(makeFlag(
         'IDENT_MULTIPLE_SETS',
         `${result.sets.length} minimal sufficient adjustment sets exist. The choice between ` +
         'them should be defended on measurement, precision, or sample-size grounds rather ' +
-        'than left implicit.',
-        '§III.C'
+        'than left implicit.'
       ));
     }
   }
@@ -245,8 +240,7 @@ function buildRegulatoryBlock(
       'CONF_LATENT_ON_BACKDOOR',
       `Latent variable(s) ${offenders.map(s => `'${s}'`).join(', ')} lie on at least one open ` +
       'backdoor path. Identifiability through measured covariates alone is impossible without ' +
-      'further structural assumptions; sensitivity analyses are warranted.',
-      '§III.E unmeasured confounding'
+      'further structural assumptions; sensitivity analyses are warranted.'
     ));
   }
 
@@ -256,8 +250,7 @@ function buildRegulatoryBlock(
     flags.push(makeFlag(
       'STRUCT_LABEL_MISMATCH',
       `Node '${c.label}' (id='${c.nodeId}') is ${c.message}. The DAG, not the label, is the ` +
-      'analytical ground truth; reconcile the mismatch before relying on the result.',
-      '§III.C'
+      'analytical ground truth; reconcile the mismatch before relying on the result.'
     ));
   }
 
@@ -269,11 +262,10 @@ function buildRegulatoryBlock(
   };
 }
 
-function makeFlag(code: FlagCode, message: string, fda_reference: string) {
+function makeFlag(code: FlagCode, message: string) {
   return {
     severity: FLAG_SEVERITY[code],
     code,
     message,
-    fda_reference,
   };
 }

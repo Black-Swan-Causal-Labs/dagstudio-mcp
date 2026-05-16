@@ -23,11 +23,11 @@ test('analyze_dag: classic confounding (DAG input) → IDENT_OK only', () => {
   assert.equal(result.identifiable, true);
   assert.equal(result.backdoor_paths.length, 1);
   assert.deepEqual(result.minimal_adjustment_sets, [['C']]);
-  assert.equal(result.regulatory_considerations.identifiability, 'identifiable');
-  assert.equal(result.regulatory_considerations.unmeasured_confounding_present, false);
-  assert.equal(result.regulatory_considerations.overadjustment_detected, false);
+  assert.equal(result.diagnostics.identifiability, 'identifiable');
+  assert.equal(result.diagnostics.unmeasured_confounding_present, false);
+  assert.equal(result.diagnostics.overadjustment_detected, false);
   assert.deepEqual(
-    result.regulatory_considerations.flags.map(f => f.code),
+    result.diagnostics.flags.map(f => f.code),
     ['IDENT_OK']
   );
 });
@@ -49,7 +49,7 @@ test('analyze_dag: T01 mediation chain → IDENT_EMPTY_SET', () => {
   assert.equal(result.identifiable, true);
   assert.deepEqual(result.minimal_adjustment_sets, [[]]);
   assert.deepEqual(
-    result.regulatory_considerations.flags.map(f => f.code),
+    result.diagnostics.flags.map(f => f.code),
     ['IDENT_EMPTY_SET']
   );
 });
@@ -72,9 +72,9 @@ test('analyze_dag: T06 instrumental variable → IDENT_NONE + CONF_LATENT_ON_BAC
     outcome: 'Y',
   });
   assert.equal(result.identifiable, false);
-  assert.equal(result.regulatory_considerations.identifiability, 'unidentifiable');
-  assert.equal(result.regulatory_considerations.unmeasured_confounding_present, true);
-  const codes = result.regulatory_considerations.flags.map(f => f.code);
+  assert.equal(result.diagnostics.identifiability, 'unidentifiable');
+  assert.equal(result.diagnostics.unmeasured_confounding_present, true);
+  const codes = result.diagnostics.flags.map(f => f.code);
   assert.ok(codes.includes('IDENT_NONE'));
   assert.ok(codes.includes('CONF_LATENT_ON_BACKDOOR'));
 });
@@ -170,7 +170,7 @@ test('analyze_dag: T12 competing adjustment sets → IDENT_OK only (one minimal 
   assert.equal(result.backdoor_paths.length, 3);
   assert.deepEqual(result.minimal_adjustment_sets, [['C1', 'C2']]);
   assert.deepEqual(
-    result.regulatory_considerations.flags.map(f => f.code),
+    result.diagnostics.flags.map(f => f.code),
     ['IDENT_OK']
   );
 });
@@ -190,6 +190,6 @@ test('analyze_dag: STRUCT_LABEL_MISMATCH fires when a mediator is mislabeled as 
     exposure: 'X',
     outcome: 'Y',
   });
-  const codes = result.regulatory_considerations.flags.map(f => f.code);
+  const codes = result.diagnostics.flags.map(f => f.code);
   assert.ok(codes.includes('STRUCT_LABEL_MISMATCH'));
 });

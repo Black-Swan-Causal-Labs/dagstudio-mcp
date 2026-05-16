@@ -41,7 +41,7 @@ test('classify_effect_modification: EM01 direct → EM_DIRECT flag', () => {
   assert.equal(out.classifications[0]!.type, 'direct');
   assert.equal(out.classifications[0]!.target_edge.src, 'e');
   assert.equal(out.classifications[0]!.target_edge.tgt, 'd');
-  const codes = out.regulatory_considerations.flags.map(f => f.code);
+  const codes = out.diagnostics.flags.map(f => f.code);
   assert.deepEqual(codes, ['EM_DIRECT']);
   // Citations: vanderweele_robins always; no weinberg unless pure-interaction.
   const sources = out.citations.map(c => c.source);
@@ -52,7 +52,7 @@ test('classify_effect_modification: EM01 direct → EM_DIRECT flag', () => {
 test('classify_effect_modification: EM18 pure-interaction → EM_PURE_INTERACTION + Weinberg cite', () => {
   const out = handler({ dag: EM18_PURE_INTERACTION });
   assert.equal(out.classifications[0]!.type, 'pure-interaction');
-  const codes = out.regulatory_considerations.flags.map(f => f.code);
+  const codes = out.diagnostics.flags.map(f => f.code);
   assert.deepEqual(codes, ['EM_PURE_INTERACTION']);
   const sources = out.citations.map(c => c.source);
   assert.ok(sources.includes('VanderWeele & Robins 2007'));
@@ -72,7 +72,7 @@ test('classify_effect_modification: empty modifiers → empty classifications, v
     },
   });
   assert.deepEqual(out.classifications, []);
-  assert.deepEqual(out.regulatory_considerations.flags, []);
+  assert.deepEqual(out.diagnostics.flags, []);
   // Per spec §5.4, vanderweele_robins_em_2007 is always emitted by this tool.
   assert.ok(out.citations.some(c => c.source.startsWith('VanderWeele')));
 });
@@ -109,7 +109,7 @@ test('classify_effect_modification: invalid modifier (source node missing) class
     },
   });
   assert.equal(out.classifications[0]!.type, 'invalid');
-  assert.deepEqual(out.regulatory_considerations.flags, []);
+  assert.deepEqual(out.diagnostics.flags, []);
 });
 
 test('classify_effect_modification: response includes engine_version', () => {

@@ -81,7 +81,7 @@ test('simulate_data: coefficient overrides take effect', () => {
 
 test('simulate_data: emits SIM_LINEAR_GAUSSIAN_ASSUMPTION + SIM_SEED_DETERMINISTIC', () => {
   const out = handler({ dag: T02_CONFOUNDING, n: 10, seed: 42 });
-  const codes = out.regulatory_considerations.flags.map(f => f.code);
+  const codes = out.diagnostics.flags.map(f => f.code);
   assert.deepEqual(codes, ['SIM_LINEAR_GAUSSIAN_ASSUMPTION', 'SIM_SEED_DETERMINISTIC']);
 });
 

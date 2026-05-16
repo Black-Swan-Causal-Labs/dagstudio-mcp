@@ -60,9 +60,9 @@ test('check_overadjustment: sound set on T02 (condition on C) → ok=true, no fl
   const result = handler({ dag: T02_CONFOUNDING, adjustment_set: ['C'] });
   assert.equal(result.ok, true);
   assert.deepEqual(result.problematic_variables, []);
-  assert.equal(result.regulatory_considerations.overadjustment_detected, false);
-  assert.equal(result.regulatory_considerations.identifiability, 'identifiable');
-  assert.deepEqual(result.regulatory_considerations.flags, []);
+  assert.equal(result.diagnostics.overadjustment_detected, false);
+  assert.equal(result.diagnostics.identifiability, 'identifiable');
+  assert.deepEqual(result.diagnostics.flags, []);
   // Only pearl_backdoor cited (no overadjustment-specific citations).
   assert.deepEqual(result.citations.map(c => c.source), ['Pearl 2009']);
 });
@@ -81,10 +81,10 @@ test('check_overadjustment: T11 conditioning on B (descendant of X) → OVERADJ_
   assert.equal(probs.length, 1);
   assert.equal(probs[0]?.id, 'B');
   assert.equal(probs[0]?.reason, 'descendant_of_exposure');
-  assert.equal(result.regulatory_considerations.overadjustment_detected, true);
-  assert.equal(result.regulatory_considerations.identifiability, 'unidentifiable');
-  assert.deepEqual(result.regulatory_considerations.overadjustment_variables, ['B']);
-  const codes = result.regulatory_considerations.flags.map(f => f.code);
+  assert.equal(result.diagnostics.overadjustment_detected, true);
+  assert.equal(result.diagnostics.identifiability, 'unidentifiable');
+  assert.deepEqual(result.diagnostics.overadjustment_variables, ['B']);
+  const codes = result.diagnostics.flags.map(f => f.code);
   assert.deepEqual(codes, ['OVERADJ_DESCENDANT']);
   // schisterman_overadjustment_2009 cited because of OVERADJ_DESCENDANT.
   const sources = result.citations.map(c => c.source);
@@ -98,7 +98,7 @@ test('check_overadjustment: T05 M-bias conditioning on M (collider) → OVERADJ_
   assert.equal(probs.length, 1);
   assert.equal(probs[0]?.id, 'M');
   assert.equal(probs[0]?.reason, 'collider');
-  const codes = result.regulatory_considerations.flags.map(f => f.code);
+  const codes = result.diagnostics.flags.map(f => f.code);
   assert.deepEqual(codes, ['OVERADJ_COLLIDER']);
   const sources = result.citations.map(c => c.source);
   assert.ok(sources.includes('Greenland 2003'));
@@ -125,8 +125,8 @@ test('check_overadjustment: descendant of unconditioned collider → OVERADJ_DES
   assert.equal(result.problematic_variables[0]?.reason, 'descendant_of_collider');
   // descendant_of_collider is a warning, not critical, so identifiability
   // stays 'identifiable' per the severity-driven logic.
-  assert.equal(result.regulatory_considerations.identifiability, 'identifiable');
-  assert.equal(result.regulatory_considerations.overadjustment_detected, true);
+  assert.equal(result.diagnostics.identifiability, 'identifiable');
+  assert.equal(result.diagnostics.overadjustment_detected, true);
 });
 
 test('check_overadjustment: throws on adjustment_set containing exposure', () => {

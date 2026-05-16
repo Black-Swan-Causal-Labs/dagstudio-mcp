@@ -6,9 +6,9 @@
 // but the §5.2 emission table says this tool emits EM_* flags, and §5.1 says
 // every tool response includes engine_version. The spec is internally
 // inconsistent on whether non-pure-transformation tools always carry a
-// regulatory_considerations envelope. We adopt the more inclusive reading:
-// regulatory_considerations + engine_version are present alongside the
-// per-modifier classifications and citations.
+// diagnostics envelope. We adopt the more inclusive reading: diagnostics +
+// engine_version are present alongside the per-modifier classifications and
+// citations.
 
 import { z } from 'zod';
 
@@ -23,10 +23,10 @@ import {
   CITATIONS,
   CitationSchema,
   DAGSchema,
+  DiagnosticsBlockSchema,
   FLAG_SEVERITY,
-  RegulatoryBlockSchema,
 } from '../schemas.js';
-import type { Citation, FlagCode, RegulatoryBlock } from '../schemas.js';
+import type { Citation, DiagnosticsBlock, FlagCode } from '../schemas.js';
 import { ENGINE_VERSION } from '../version.js';
 
 export const InputSchema = z.object({
@@ -41,7 +41,7 @@ export const OutputSchema = z.object({
     type: z.enum(['direct', 'indirect', 'common-cause', 'proxy', 'pure-interaction', 'invalid']),
     explanation: z.string(),
   })),
-  regulatory_considerations: RegulatoryBlockSchema,
+  diagnostics: DiagnosticsBlockSchema,
   engine_version: z.string(),
   citations: z.array(CitationSchema),
 });
@@ -62,7 +62,6 @@ export const descriptor = {
     "  • proxy — modifier is unobserved; subgroup analyses rest on a downstream proxy.\n" +
     "  • pure-interaction — modifier has a direct edge to the outcome; the appropriate " +
     "estimand is the joint effect, not a subgroup-specific effect (Weinberg 2007).\n\n" +
-    "Serves FDA RWE-guidance §III.E (\"Approach and rationale for subgroup analyses\"). " +
     "Outputs are conditional on the encoded structure.",
   inputSchema: {
     type: 'object',
@@ -81,8 +80,6 @@ const EM_TYPE_TO_FLAG: Record<EMType, FlagCode | null> = {
   'pure-interaction': 'EM_PURE_INTERACTION',
   'invalid': null,
 };
-
-const EM_TYPE_FDA_REF = '§III.E subgroup analyses';
 
 export function handler(input: Input): Output {
   const dag = input.dag;
@@ -132,7 +129,7 @@ export function handler(input: Input): Output {
 
   // Flags: one per non-invalid classification. 'invalid' modifiers (where the
   // source node was deleted from the canvas) emit no flag.
-  const flags: RegulatoryBlock['flags'] = [];
+  const flags: DiagnosticsBlock['flags'] = [];
   for (const cls of classifications) {
     const code = EM_TYPE_TO_FLAG[cls.type];
     if (!code) continue;
@@ -140,11 +137,10 @@ export function handler(input: Input): Output {
       severity: FLAG_SEVERITY[code],
       code,
       message: `Modifier '${cls.modifier_id}' is classified as ${cls.type}: ${cls.explanation}`,
-      fda_reference: EM_TYPE_FDA_REF,
     });
   }
 
-  const regulatory: RegulatoryBlock = {
+  const diagnostics: DiagnosticsBlock = {
     identifiability: 'identifiable',
     unmeasured_confounding_present: false,
     overadjustment_detected: false,
@@ -161,7 +157,7 @@ export function handler(input: Input): Output {
 
   return {
     classifications,
-    regulatory_considerations: regulatory,
+    diagnostics,
     engine_version: ENGINE_VERSION,
     citations,
   };

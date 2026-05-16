@@ -3,8 +3,7 @@
 // the DAG. The identifier_map lets agents trace canvas labels to sanitized
 // code identifiers when these differ.
 //
-// Pure transformation per spec §5.2 — no regulatory_considerations, no
-// citations, no concordance.
+// Pure transformation per spec §5.2 — no diagnostics, no citations, no concordance.
 
 import { z } from 'zod';
 

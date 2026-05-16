@@ -24,10 +24,10 @@ import {
   CITATIONS,
   CitationSchema,
   DAGSchema,
+  DiagnosticsBlockSchema,
   FLAG_SEVERITY,
-  RegulatoryBlockSchema,
 } from '../schemas.js';
-import type { Citation, DAG, FlagCode, RegulatoryBlock } from '../schemas.js';
+import type { Citation, DAG, DiagnosticsBlock, FlagCode } from '../schemas.js';
 import { ENGINE_VERSION } from '../version.js';
 
 import * as parseDagitty from './parse_dagitty.js';
@@ -59,7 +59,7 @@ export const OutputSchema = z.object({
     explanation: z.string(),
   })),
   recommendation: z.string(),
-  regulatory_considerations: RegulatoryBlockSchema,
+  diagnostics: DiagnosticsBlockSchema,
   engine_version: z.string(),
   citations: z.array(CitationSchema),
 });
@@ -78,9 +78,8 @@ export const descriptor = {
     "  • descendant_of_collider — variable is downstream of an unconditioned collider; " +
     "conditioning induces the same M-bias as conditioning on the collider directly " +
     "(Greenland 2003).\n\n" +
-    "Serves FDA RWE-guidance §III.E bullet 4 (\"Evaluation of potential overadjustment of " +
-    "intermediate variables on the causal pathway\"). Accepts either a canonical DAG object " +
-    "or a dagitty_string; both forms must be paired with adjustment_set.\n\n" +
+    "Accepts either a canonical DAG object or a dagitty_string; both forms must be paired " +
+    "with adjustment_set.\n\n" +
     "Outputs are conditional on the encoded structure. DAG Studio verifies analyses given a " +
     "DAG; it does not verify the DAG correctly encodes domain knowledge.",
   // MCP requires inputSchema.type === 'object' at the top level (oneOf-only
@@ -178,11 +177,10 @@ export function handler(input: Input): Output {
   const citations: Citation[] = [...citationKeys].map(k => ({ ...CITATIONS[k] }));
 
   // Build flags from the per-variable classification.
-  const flags: RegulatoryBlock['flags'] = problematic.map(p => ({
+  const flags: DiagnosticsBlock['flags'] = problematic.map(p => ({
     severity: FLAG_SEVERITY[REASON_TO_FLAG[p.reason]],
     code: REASON_TO_FLAG[p.reason],
     message: p.explanation,
-    fda_reference: '§III.E bullet 4',
   }));
 
   // identifiability: any *critical* overadjustment flag (descendant or collider)
@@ -191,7 +189,7 @@ export function handler(input: Input): Output {
   // in FLAG_SEVERITY.)
   const hasCriticalOveradj = flags.some(f => f.severity === 'critical');
 
-  const regulatory: RegulatoryBlock = {
+  const diagnostics: DiagnosticsBlock = {
     identifiability: hasCriticalOveradj ? 'unidentifiable' : 'identifiable',
     unmeasured_confounding_present: false,
     overadjustment_detected: !ok,
@@ -205,7 +203,7 @@ export function handler(input: Input): Output {
     ok,
     problematic_variables: problematic,
     recommendation,
-    regulatory_considerations: regulatory,
+    diagnostics,
     engine_version: ENGINE_VERSION,
     citations,
   };
