@@ -13,6 +13,14 @@
       { "name": "MCP_OBJECT", "class_name": "DagStudioMCP" }
     ]
   },
+  // Trial-access token store (item 11). Namespace created via
+  //   npx wrangler kv namespace create TOKENS
+  // Tokens are issued/revoked with scripts/issue-token.mjs (writes via --remote).
+  // For `wrangler dev` against a separate store, add a preview_id from
+  //   npx wrangler kv namespace create TOKENS --preview
+  "kv_namespaces": [
+    { "binding": "TOKENS", "id": "8ee12f4f12bc4beaa8380991a9f3f64d" }
+  ],
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["DagStudioMCP"] }
   ],

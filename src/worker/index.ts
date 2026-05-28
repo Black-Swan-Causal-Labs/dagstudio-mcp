@@ -12,6 +12,12 @@ import { McpAgent } from 'agents/mcp';
 
 import { ATTESTATION } from '../attestation.js';
 import { ENGINE_VERSION } from '../version.js';
+import {
+  decrementedRecord,
+  evaluateToken,
+  extractToken,
+  type TokenRecord,
+} from './auth.js';
 
 import * as analyzeDag from '../tools/analyze_dag.js';
 import * as checkOveradjustment from '../tools/check_overadjustment.js';
@@ -43,6 +49,7 @@ const DESCRIPTORS = TOOLS.map(t => t.descriptor);
 
 interface Env {
   MCP_OBJECT: DurableObjectNamespace;
+  TOKENS: KVNamespace;
 }
 
 export class DagStudioMCP extends McpAgent<Env> {
@@ -86,6 +93,27 @@ export class DagStudioMCP extends McpAgent<Env> {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    // Trial-access gate. Universal across all paths on the hostname (no
+    // carve-outs, since we are not running OAuth discovery). Pulls a token from
+    // the Authorization header or a ?token= query param, validates it against
+    // the TOKENS KV namespace, and meters quota on the way through.
+    const token = extractToken(
+      request.headers.get('authorization'),
+      url.searchParams.get('token'),
+    );
+    const record = token ? await env.TOKENS.get<TokenRecord>(token, 'json') : null;
+    const verdict = evaluateToken(record);
+    if (!verdict.ok) {
+      return new Response(JSON.stringify({ error: verdict.error }), {
+        status: verdict.status,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+    if (record && token) {
+      const next = decrementedRecord(record);
+      if (next) ctx.waitUntil(env.TOKENS.put(token, JSON.stringify(next)));
+    }
 
     if (url.pathname === '/mcp') {
       return DagStudioMCP.serve('/mcp').fetch(request, env, ctx);
