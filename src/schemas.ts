@@ -32,9 +32,23 @@ export const ModifierSchema = z.object({
   emType: z.string().nullable().optional(),
 });
 
+// Input-size caps. The engine's path enumeration is exponential in graph
+// density and the Worker has hard CPU/memory limits, so oversized inputs are
+// rejected at the schema boundary instead of timing out mid-analysis.
+export const MAX_NODES = 50;
+export const MAX_EDGES = 150;
+export const MAX_SAMPLE_SIZE = 10_000;
+export const MAX_DAGITTY_LENGTH = 20_000;
+
 export const DAGSchema = z.object({
-  nodes: z.array(NodeSchema),
-  edges: z.array(EdgeSchema),
+  nodes: z.array(NodeSchema).max(
+    MAX_NODES,
+    `DAG exceeds the ${MAX_NODES}-node limit. Reduce the graph to the variables relevant to the exposure-outcome question.`
+  ),
+  edges: z.array(EdgeSchema).max(
+    MAX_EDGES,
+    `DAG exceeds the ${MAX_EDGES}-edge limit. Reduce the graph to the variables relevant to the exposure-outcome question.`
+  ),
   exposure: z.string().optional(),
   outcome: z.string().optional(),
   modifiers: z.array(ModifierSchema).optional(),
@@ -51,6 +65,8 @@ export const FLAG_SEVERITY = {
   IDENT_NONE: 'critical',
   IDENT_EMPTY_SET: 'info',
   IDENT_MULTIPLE_SETS: 'info',
+  IDENT_CANDIDATES_TRUNCATED: 'warning',
+  IDENT_PATHS_TRUNCATED: 'warning',
   CONF_LATENT_ON_BACKDOOR: 'warning',
   OVERADJ_DESCENDANT: 'critical',
   OVERADJ_COLLIDER: 'critical',

@@ -32,11 +32,19 @@ import { ENGINE_VERSION } from '../version.js';
 
 import * as parseDagitty from './parse_dagitty.js';
 
-// Discriminated input: full DAG or { dagitty_string }. Zod's z.union tries
-// the first schema, falls back to the second on failure. Order matters here:
-// dagitty_string is a single-key payload that the DAG schema would reject
-// (no nodes/edges), so DAGSchema-first is correct.
-export const InputSchema = z.union([DAGSchema, parseDagitty.InputSchema]);
+// Discriminated input: full DAG or { dagitty_string }. The descriptor
+// promises that dagitty_string wins when both variants are present, so the
+// preprocess step discriminates on the raw payload before union validation:
+// a bare z.union would match DAGSchema first (stripping dagitty_string as an
+// unknown key) and silently analyze the wrong graph. Stripping the DAG fields
+// when dagitty_string is present also makes an *invalid* dagitty_string a
+// validation error instead of a silent fallback to the DAG variant.
+export const InputSchema = z.preprocess(
+  raw => (raw !== null && typeof raw === 'object' && 'dagitty_string' in raw)
+    ? { dagitty_string: (raw as Record<string, unknown>).dagitty_string }
+    : raw,
+  z.union([DAGSchema, parseDagitty.InputSchema])
+);
 export type Input = z.infer<typeof InputSchema>;
 
 export const OutputSchema = z.object({
@@ -84,7 +92,8 @@ export const descriptor = {
     description:
       "Provide either a canonical DAG (nodes + edges + optional exposure/outcome) OR a " +
       "dagitty_string. Mixing the two is allowed but only the dagitty_string is used when " +
-      "present.",
+      "present; the DAG fields are ignored, and an invalid dagitty_string is an error " +
+      "rather than a fallback to the DAG fields.",
     properties: {
       nodes: {
         type: 'array',
@@ -204,11 +213,35 @@ export function handler(input: Input): Output {
 
 function buildDiagnosticsBlock(
   dag: DAG,
-  result: { sets: string[][]; backdoor: string[][]; all: string[][] },
+  result: {
+    sets: string[][];
+    backdoor: string[][];
+    all: string[][];
+    truncated?: { candidates: boolean; paths: boolean };
+  },
   engineNodes: EngineNode[],
   engineEdges: EngineEdge[]
 ): DiagnosticsBlock {
   const flags: DiagnosticsBlock['flags'] = [];
+
+  // Truncation warnings: set-validity checks are exact d-separation tests,
+  // but candidate enumeration and the displayed path lists are bounded.
+  if (result.truncated?.candidates) {
+    flags.push(makeFlag(
+      'IDENT_CANDIDATES_TRUNCATED',
+      'The DAG has more eligible adjustment candidates than the subset-enumeration cap; ' +
+      'minimal_adjustment_sets may be incomplete. Reduce the covariate count or verify a ' +
+      'proposed set directly with check_overadjustment.'
+    ));
+  }
+  if (result.truncated?.paths) {
+    flags.push(makeFlag(
+      'IDENT_PATHS_TRUNCATED',
+      'Path enumeration hit its budget; backdoor_paths and all_directed_paths may be ' +
+      'incomplete. Adjustment-set validity is unaffected (checked by d-separation, not ' +
+      'path lists).'
+    ));
+  }
 
   // Identifiability flags.
   if (result.backdoor.length === 0) {

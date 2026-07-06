@@ -6,11 +6,13 @@ import { z } from 'zod';
 
 import { parseDagitty as engineParse } from '../../../dag-engine.js';
 import type { ParsedDagitty } from '../../../dag-engine.js';
-import { DAGSchema } from '../schemas.js';
+import { DAGSchema, MAX_DAGITTY_LENGTH, MAX_EDGES, MAX_NODES } from '../schemas.js';
 import type { DAG } from '../schemas.js';
 
 export const InputSchema = z.object({
-  dagitty_string: z.string().min(1, 'dagitty_string must be a non-empty string'),
+  dagitty_string: z.string()
+    .min(1, 'dagitty_string must be a non-empty string')
+    .max(MAX_DAGITTY_LENGTH, `dagitty_string exceeds the ${MAX_DAGITTY_LENGTH}-character limit`),
 });
 export type Input = z.infer<typeof InputSchema>;
 
@@ -42,6 +44,7 @@ export const descriptor = {
       dagitty_string: {
         type: 'string',
         minLength: 1,
+        maxLength: 20000,
         description:
           "A dagitty DSL string, e.g., \"dagitty('dag { X [exposure]; Y [outcome]; X -> Y }')\".",
       },
@@ -53,6 +56,21 @@ export const descriptor = {
 
 export function handler(input: Input): Output {
   const parsed = engineParse(input.dagitty_string);
+  // Enforce the same size caps as DAGSchema: tools like analyze_dag route
+  // dagitty input through this handler without re-validating the parsed DAG,
+  // and downstream path enumeration is exponential in graph size.
+  if (parsed.nodes.length > MAX_NODES) {
+    throw new Error(
+      `Parsed DAG has ${parsed.nodes.length} nodes, exceeding the ${MAX_NODES}-node limit. ` +
+      `Reduce the graph to the variables relevant to the exposure-outcome question.`
+    );
+  }
+  if (parsed.edges.length > MAX_EDGES) {
+    throw new Error(
+      `Parsed DAG has ${parsed.edges.length} edges, exceeding the ${MAX_EDGES}-edge limit. ` +
+      `Reduce the graph to the variables relevant to the exposure-outcome question.`
+    );
+  }
   return toDAG(parsed);
 }
 

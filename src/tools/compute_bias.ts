@@ -22,6 +22,7 @@ import {
   DAGSchema,
   DiagnosticsBlockSchema,
   FLAG_SEVERITY,
+  MAX_SAMPLE_SIZE,
 } from '../schemas.js';
 import type { Citation, DiagnosticsBlock } from '../schemas.js';
 import { ENGINE_VERSION } from '../version.js';
@@ -34,7 +35,10 @@ const DEFAULT_SEED = 42;
 export const InputSchema = z.object({
   dag: DAGSchema,
   adjustment_set: z.array(z.string()),
-  n: z.number().int().positive().optional(),
+  n: z.number().int().positive().max(
+    MAX_SAMPLE_SIZE,
+    `n exceeds the ${MAX_SAMPLE_SIZE}-row limit. Larger simulations exceed Worker CPU/memory limits.`
+  ).optional(),
   seed: z.number().int().optional(),
   coefficients: z.record(z.number()).optional(),
 });
@@ -73,7 +77,7 @@ export const descriptor = {
     properties: {
       dag: { type: 'object' },
       adjustment_set: { type: 'array', items: { type: 'string' } },
-      n: { type: 'integer', minimum: 1, description: 'Sample size. Default 1000.' },
+      n: { type: 'integer', minimum: 1, maximum: 10000, description: 'Sample size. Default 1000, maximum 10000.' },
       seed: { type: 'integer', description: 'Deterministic seed. Default 42.' },
       coefficients: {
         type: 'object',

@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { handler } from '../src/tools/analyze_dag.js';
+import { handler, InputSchema } from '../src/tools/analyze_dag.js';
 
 test('analyze_dag: classic confounding (DAG input) → IDENT_OK only', () => {
   const result = handler({
@@ -85,6 +85,38 @@ test('analyze_dag: dagitty_string input path delegates to parse_dagitty', () => 
   });
   assert.equal(result.identifiable, true);
   assert.deepEqual(result.minimal_adjustment_sets, [['C']]);
+});
+
+test('analyze_dag: mixed DAG + dagitty_string input → dagitty_string wins (descriptor contract)', () => {
+  // Full request flow: InputSchema.parse then handler, as src/index.ts and
+  // src/worker/index.ts do. The DAG fields describe a *different* graph (no
+  // confounder); if the dagitty_string wins as documented, C must appear in
+  // the adjustment sets.
+  const input = InputSchema.parse({
+    nodes: [
+      { id: 'X', label: 'X', type: 'exposure' },
+      { id: 'Y', label: 'Y', type: 'outcome' },
+    ],
+    edges: [{ src: 'X', tgt: 'Y' }],
+    exposure: 'X',
+    outcome: 'Y',
+    dagitty_string: `dagitty('dag { X [exposure]; Y [outcome]; C; X -> Y; C -> X; C -> Y }')`,
+  });
+  const result = handler(input);
+  assert.deepEqual(result.minimal_adjustment_sets, [['C']]);
+});
+
+test('analyze_dag: invalid dagitty_string alongside a valid DAG → validation error, not silent DAG fallback', () => {
+  assert.throws(() => InputSchema.parse({
+    nodes: [
+      { id: 'X', label: 'X', type: 'exposure' },
+      { id: 'Y', label: 'Y', type: 'outcome' },
+    ],
+    edges: [{ src: 'X', tgt: 'Y' }],
+    exposure: 'X',
+    outcome: 'Y',
+    dagitty_string: '',
+  }));
 });
 
 test('analyze_dag: missing exposure → throws with remediation hint', () => {
