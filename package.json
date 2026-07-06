@@ -33,6 +33,7 @@
     "test:tools": "node --import tsx --test tests/*.test.ts",
     "test": "npm run test:engine && npm run test:tools",
     "worker:dev": "wrangler dev",
+    "preworker:deploy": "node scripts/stamp-version.mjs",
     "worker:deploy": "wrangler deploy",
     "worker:tail": "wrangler tail",
     "worker:typecheck": "node node_modules/typescript/bin/tsc -p tsconfig.worker.json --noEmit"
