@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "description": "Model Context Protocol server for the DAG Studio causal-inference engine.",
   "type": "module",
-  "license": "MIT",
-  "author": "John D. Diaz-Decaro <jdiazdecaro@gmail.com>",
-  "homepage": "https://github.com/Black-Swan-Causal-Labs/dag-studio",
+  "license": "Apache-2.0",
+  "author": "John D. Diaz-Decaro <jdiazdecaro@blackswancausallabs.com>",
+  "homepage": "https://github.com/Black-Swan-Causal-Labs/dagstudio-mcp",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Black-Swan-Causal-Labs/dag-studio.git",
-    "directory": "dag-studio-mcp"
+    "url": "https://github.com/Black-Swan-Causal-Labs/dagstudio-mcp.git"
   },
   "engines": {
     "node": ">=20"

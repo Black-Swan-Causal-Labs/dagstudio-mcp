@@ -4,6 +4,8 @@
 **Last updated:** April 2026
 **Related:** [`FDA_GUIDANCE_ALIGNMENT.md`](./FDA_GUIDANCE_ALIGNMENT.md)
 
+> **Historical note (July 2026).** This is the v1 specification as written in April 2026. The implementation has since diverged in two documented ways: the `regulatory_considerations` response envelope (section 5.2) was renamed to `diagnostics` and its `fda_reference` flag field was removed (worker-v0.2.0), and the remote transport described as deferred in section 2.3 shipped as a Cloudflare Worker with a trial-access token gate. Tool contracts otherwise match this document.
+
 ---
 
 ## 1. Purpose and audience
