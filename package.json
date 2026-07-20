@@ -30,7 +30,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "concordance": "node ci/concordance.mjs",
-    "test:engine": "node --test ../dag-engine.test.js",
+    "test:engine": "node --test dag-engine.test.js",
     "test:tools": "node --import tsx --test tests/*.test.ts",
     "test": "npm run test:engine && npm run test:tools",
     "worker:dev": "wrangler dev",
