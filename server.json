@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.black-swan-causal-labs/dagstudio-mcp",
+  "name": "com.blackswancausallabs/dagstudio-mcp",
   "title": "DAG Studio MCP",
   "description": "Causal DAG analysis: backdoor paths, adjustment sets, bias simulation. Validated against dagitty.",
   "version": "0.1.0",
