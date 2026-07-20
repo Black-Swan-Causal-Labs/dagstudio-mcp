@@ -32,6 +32,7 @@
     "concordance": "node ci/concordance.mjs",
     "test:engine": "node --test dag-engine.test.js",
     "test:tools": "node --import tsx --test tests/*.test.ts",
+    "pretest": "node scripts/stamp-version.mjs",
     "test": "npm run test:engine && npm run test:tools",
     "worker:dev": "wrangler dev",
     "preworker:deploy": "node scripts/stamp-version.mjs",
