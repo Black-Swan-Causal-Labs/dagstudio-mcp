@@ -1,5 +1,8 @@
 # dag-studio-mcp
 
+[![CI](https://github.com/Black-Swan-Causal-Labs/dagstudio-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Black-Swan-Causal-Labs/dagstudio-mcp/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 Model Context Protocol (MCP) server for the [DAG Studio](https://github.com/Black-Swan-Causal-Labs/dag-studio) causal-inference engine. It lets AI agents construct, analyze, and validate causal directed acyclic graphs (DAGs) using the same engine that powers the [DAG Studio canvas](https://dagstudio.blackswancausallabs.com/).
 
 Built and maintained by [Black Swan Causal Labs](https://blackswancausallabs.com). Listed in the [RWE MCP Registry](https://black-swan-causal-labs.github.io/RWE-MCP-Registry/).

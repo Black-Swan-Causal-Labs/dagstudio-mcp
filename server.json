@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.black-swan-causal-labs/dagstudio-mcp",
+  "title": "DAG Studio MCP",
+  "description": "Causal DAG analysis for real-world evidence workflows: backdoor paths, adjustment sets, bias simulation, effect-modification classification. Validated against dagitty.",
+  "version": "0.1.0",
+  "websiteUrl": "https://dagstudio.blackswancausallabs.com",
+  "repository": {
+    "url": "https://github.com/Black-Swan-Causal-Labs/dagstudio-mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://dagstudio-mcp.blackswancausallabs.com/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer <trial token>. Request a token at jdiazdecaro@blackswancausallabs.com. Clients that cannot set custom headers may instead append ?token=<trial token> to the URL.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
