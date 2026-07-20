@@ -739,4 +739,4 @@ Implementation references:
 
 ---
 
-*DAG Studio v0.1.0 · Black Swan Causal Labs, LLC · MIT License · [github.com/Black-Swan-Causal-Labs/dag-studio](https://github.com/Black-Swan-Causal-Labs/dag-studio)*
+*DAG Studio v0.1.0 · Black Swan Causal Labs, LLC · Apache License 2.0 · [github.com/Black-Swan-Causal-Labs/dagstudio-mcp](https://github.com/Black-Swan-Causal-Labs/dagstudio-mcp)*

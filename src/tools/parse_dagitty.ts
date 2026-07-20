@@ -4,8 +4,8 @@
 
 import { z } from 'zod';
 
-import { parseDagitty as engineParse } from '../../../dag-engine.js';
-import type { ParsedDagitty } from '../../../dag-engine.js';
+import { parseDagitty as engineParse } from '../../dag-engine.js';
+import type { ParsedDagitty } from '../../dag-engine.js';
 import { DAGSchema, MAX_DAGITTY_LENGTH, MAX_EDGES, MAX_NODES } from '../schemas.js';
 import type { DAG } from '../schemas.js';
 

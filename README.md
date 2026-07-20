@@ -3,7 +3,7 @@
 [![CI](https://github.com/Black-Swan-Causal-Labs/dagstudio-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Black-Swan-Causal-Labs/dagstudio-mcp/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Model Context Protocol (MCP) server for the [DAG Studio](https://github.com/Black-Swan-Causal-Labs/dag-studio) causal-inference engine. It lets AI agents construct, analyze, and validate causal directed acyclic graphs (DAGs) using the same engine that powers the [DAG Studio canvas](https://dagstudio.blackswancausallabs.com/).
+Model Context Protocol (MCP) server for the DAG Studio causal-inference engine. It lets AI agents construct, analyze, and validate causal directed acyclic graphs (DAGs) using the same engine that powers the [DAG Studio canvas](https://dagstudio.blackswancausallabs.com/).
 
 Built and maintained by [Black Swan Causal Labs](https://blackswancausallabs.com). Listed in the [RWE MCP Registry](https://black-swan-causal-labs.github.io/RWE-MCP-Registry/).
 
@@ -53,6 +53,7 @@ Claude.ai web: add a custom connector pointed at `https://dagstudio-mcp.blackswa
 
 ## Repository layout
 
+- `dag-engine.js` / `dag-engine.d.ts`: the analytical engine, a pure ESM module with no runtime dependencies
 - `src/tools/`: one file per tool, each exporting `{ InputSchema, OutputSchema, descriptor, handler }`
 - `src/worker/`: Cloudflare Worker transport and the token gate (`auth.ts`)
 - `src/index.ts`: stdio entry point for local use
@@ -61,7 +62,7 @@ Claude.ai web: add a custom connector pointed at `https://dagstudio-mcp.blackswa
 - `MCP_REQUIREMENTS.md`: the v1 specification
 - `FDA_GUIDANCE_ALIGNMENT.md`: mapping of DAG Studio capabilities onto FDA draft RWE guidance protocol elements
 
-The analytical engine itself (`dag-engine.js`) lives in the open [dag-studio](https://github.com/Black-Swan-Causal-Labs/dag-studio) repository and is imported from a sibling checkout (`../../dag-engine.js` relative to `src/`). To build this package, clone both repositories with the layout the import expects, or vendor the engine file.
+The engine is developed alongside the DAG Studio canvas app and the vendored copy here is synced at release time. This repository is self-contained: clone it, `npm install`, and everything builds and tests without further setup.
 
 ## Development
 

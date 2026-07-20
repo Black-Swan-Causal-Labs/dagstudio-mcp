@@ -18,6 +18,8 @@
   },
   "files": [
     "dist",
+    "dag-engine.js",
+    "dag-engine.d.ts",
     "README.md",
     "LICENSE"
   ],

@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 
-import { EM_TESTS, runEMTest, runTest, TESTS } from '../../../dag-engine.js';
+import { EM_TESTS, runEMTest, runTest, TESTS } from '../../dag-engine.js';
 import { ENGINE_VERSION } from '../version.js';
 
 export const InputSchema = z.object({

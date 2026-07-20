@@ -21,7 +21,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = resolve(HERE, '..', '..');
+const REPO_ROOT = resolve(HERE, '..');
 const require = createRequire(import.meta.url);
 
 // Build the bundle if missing (idempotent — fast even when present).

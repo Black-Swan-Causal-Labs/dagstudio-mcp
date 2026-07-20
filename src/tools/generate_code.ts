@@ -12,8 +12,8 @@ import {
   generatePythonCode,
   generateRCode,
   _identMap,
-} from '../../../dag-engine.js';
-import type { EngineEdge, EngineNode } from '../../../dag-engine.js';
+} from '../../dag-engine.js';
+import type { EngineEdge, EngineNode } from '../../dag-engine.js';
 
 import { DAGSchema } from '../schemas.js';
 

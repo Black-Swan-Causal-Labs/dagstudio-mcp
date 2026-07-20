@@ -17,8 +17,8 @@ import {
   hasCycle,
   isCollider,
   pathBlocked,
-} from '../../../dag-engine.js';
-import type { EngineEdge, EngineNode } from '../../../dag-engine.js';
+} from '../../dag-engine.js';
+import type { EngineEdge, EngineNode } from '../../dag-engine.js';
 
 import {
   CITATIONS,

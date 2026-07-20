@@ -10,39 +10,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout dagstudio-mcp
-        uses: actions/checkout@v4
-        with:
-          path: repo
-
-      - name: Checkout dag-studio (engine source)
-        uses: actions/checkout@v4
-        with:
-          repository: Black-Swan-Causal-Labs/dag-studio
-          path: dag-studio
-
-      # src/version.ts imports the engine from ../../dag-engine.js, i.e. the
-      # parent directory of the repo root. Locally that parent is a dag-studio
-      # checkout; here we place the engine files at the workspace root, which
-      # is the repo's parent in this layout.
-      - name: Place engine at expected relative path
-        run: cp dag-studio/dag-engine.js dag-studio/dag-engine.d.ts "$GITHUB_WORKSPACE/"
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: repo/package-lock.json
 
       - name: Install
-        working-directory: repo
         run: npm ci
 
       - name: Test
-        working-directory: repo
         run: npm test
 
       - name: Worker typecheck
-        working-directory: repo
         run: npm run worker:typecheck

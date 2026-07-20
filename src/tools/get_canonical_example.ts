@@ -8,8 +8,8 @@
 
 import { z } from 'zod';
 
-import { TESTS, EM_TESTS } from '../../../dag-engine.js';
-import type { TestCase, EMTestCase } from '../../../dag-engine.js';
+import { TESTS, EM_TESTS } from '../../dag-engine.js';
+import type { TestCase, EMTestCase } from '../../dag-engine.js';
 
 import { CitationSchema, DAGSchema, NodeTypeSchema } from '../schemas.js';
 import type { Citation, DAG } from '../schemas.js';

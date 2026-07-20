@@ -16,8 +16,8 @@ import {
   classifyEffectModification,
   EM_TYPE_DESCRIPTIONS,
   hasCycle,
-} from '../../../dag-engine.js';
-import type { EMType, EngineEdge, EngineModifier, EngineNode } from '../../../dag-engine.js';
+} from '../../dag-engine.js';
+import type { EMType, EngineEdge, EngineModifier, EngineNode } from '../../dag-engine.js';
 
 import {
   CITATIONS,
